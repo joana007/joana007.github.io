@@ -5,7 +5,7 @@
   </head>
   <body>
 	<!--This draws the canvas on the webpage -->
-    <!-- canvas id="mycanvas"></canvas--> 
+    <canvas id="mycanvas"></canvas> 
   </body>
 
 
@@ -30,23 +30,23 @@
       // Paste code from Khan Academy here:
 	    // COLOCAR O JOGO AQUI
 
-	    background(255, 255, 255);
-noStroke();
-
-// draw the original position in gray
-fill(190, 190, 190);
-rect(20, 20, 40, 40);
-
-// draw a translucent red rectangle by changing the coordinates
-fill(255, 0, 0, 128);
-rect(20 + 60, 20 + 80, 40, 40);
-
-// draw a translucent blue rectangle by translating the grid
-fill(0, 0, 255, 128);
-pushMatrix();
-translate(60, 80);
-rect(20, 20, 40, 40);
-popMatrix();
+	    noStroke();
+		background(0, 0, 0);
+		var r = 255;
+		var g = 90;
+		var b = 0;
+		for (var i=0;i<360;i+=30){
+		   fill(r, g, b); 
+		   r -= 21;
+		   g += 13;
+		   b += 21;
+		pushMatrix();
+		translate(200,200);
+		rotate(i);
+		rect(0, 0, 150, 15);
+		popMatrix();
+		}
+		noStroke();
 
 	    
     }};
