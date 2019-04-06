@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html> 
+  <head>
+    <title>JOGOS</title> 
+  </head>
+<div class="header">
+  <h1>Jogos em java script</h1>
+  <p>Projeto HAC da Joana</p>
+</div>	
+	
+  <body>
+	  <!--
+	  <button onclick="restart()">
+		  Restart
+	  </button> -->
+	<!--This draws the canvas on the webpage -->
+    <canvas id="mycanvas"></canvas> 
+	 
+  </body>
+<script src="https://cdn.jsdelivr.net/processing.js/1.4.8/processing.min.js"></script> 
+<script>  
+  var programCode = function(processingInstance) {
+    with (processingInstance) {
+      size(500, 500); 
+/**
+ * A Khan Academy version of the classic arcade game
+ * "Snake"
+ *
+ * Use the arrow keys to move the star around and
+ * eat the avatars/grow the snake.
+ *
+ * Try changing the values in the SETTINGS section!
+ *
+ * Updates
+ * =======
+ * 2012-12-30
+ * - Made snake respond better to keypresses
+ * - Made code more readable
+ */
+///////////// SETTINGS /////////////
+// number of {rows|columns}
+var N = 20;
+// starting length of snake
+// click "Restart" if you change this
+var START_LENGTH = 1;
+// increase to slow down the game
+var GAME_SPEED = 3;
+// how many cycles to wait before letting the
+// user restart
+var GAME_OVER_TIMEOUT = 20;
+// if false, game over when snake moves beyond
+// game boundaries
+var WRAP_AROUND = true;
+///////////// GLOBAL VARIABLES /////////////
+var apple; // the avatar to be eaten next
+var snake;
+var gameOver; // true when the game is over
+var gameOverTimer;
+var height = 500;
+// height is the canvas height
+var rowHeight = height / N;
+// keep track of arrow keypresses
+var keystack = [];
+///////////// IMAGE VARIABLES /////////////
+var mrpink = loadImage("avatars/mr-pink.png");    
+var star = loadImage("avatars/Hopper-Cool.png");
+var oldspice = loadImage("avatars/mr-pants.png");
+var marcimus = loadImage("avatars/marcimus.png");
+var pants = loadImage("avatars/mr-pink.png");
+var squid = loadImage("avatars/orange-juice-squid.png");
+var purple = loadImage("avatars/purple-pi.png");
+var images = [oldspice, mrpink, marcimus,
+              pants, squid, purple];
+///////////// UTILITY FUNCTIONS /////////////
+// generate a random integer
+var randomInt = function(min, max) {
+    var num = random(min, max);
+    return floor(num);
+}
+// a generic timer function
+var Timer = function(limit) {
+    // initialize
+    var t = limit;
+    return {
+        reset: function() {
+            t = limit;
+        },
+        decr: function() {
+            if (t > 0) {
+                t -= 1;
+            } else {
+                t = 0;
+            }
+        },
+        isUp: function() {
+            return t === 0;
+        }
+    };
+};
+// record key presses
+var keyPressed = function() {
+    if (!gameOver) {
+        if (keyCode === RIGHT || keyCode === LEFT ||
+            keyCode === UP || keyCode === DOWN) {
+            keystack.push(keyCode);
+        }
+    }
+};
+///////////// DRAWING FUNCTIONS /////////////
+var drawUnit = function(row, col, i) {
+    var h = rowHeight;
+    var x = col * h;
+    var y = row * h;
+    image(images[i], x, y, h, h);
+};
+var drawBackground = function(opacity) {
+    fill(36, 36, 36, opacity);
+    rect(0, 0, height, height);
+};
+var drawGrid = function() {
+    stroke(46, 46, 46);
+    for (var i = 0; i < N; i += 1) {
+        var x = i / N * height;
+        line(x, 0, x, height);
+        line(0, x, height, x);
+    }
+};
+var drawGameOverScreen = function() {
+    drawBackground(150);
+    var font = createFont("monospace", 20);
+    textFont(font, 20);
+    textSize(60);
+    fill(49, 201, 26);
+    text("GAME OVER", 38, 175);
+    textSize(26);
+    text("Score: " + snake.score(), 132, 239);
+    if (gameOverTimer.isUp()) {
+        textSize(16);
+        text("Press any key to start over.", 66, 314);
+    }
+};
+///////////// APPLE /////////////
+var Apple = function() {
+    this.init = function() {
+        this.row = randomInt(0, N);
+        this.col = randomInt(0, N);
+        this.img = randomInt(0, images.length);
+    };
+    this.positionMatch = function(row, col) {
+        return this.row === row && this.col === col;
+    };
+    this.draw = function() {
+        stroke(69, 69, 69);
+        strokeWeight(1);
+        fill(20, 20, 20);
+        var h = rowHeight;
+        var x = (this.col + 0.5) * h;
+        var y = (this.row + 0.5) * h;
+        ellipse(x, y, h * 1.5, h * 1.5);
+        drawUnit(this.row, this.col, this.img);
+    };
+    this.init();
+};
+///////////// SNAKE /////////////
+var Snake = function() {
+    var rowArr = []; // row index of each body part
+    var colArr = []; // column index of each body part
+    var imgArr = []; // index of image for each body part
+    var direction; // current direction of snake movement
+    var nextDirection; // direction in the next frame
+    var score; // number of apples this snake has eaten
+    var init = function() {
+        // start with a brand new snake
+        rowArr = [];
+        colArr = [];
+        imgArr = [];
+        // start the snake off in the upper left corner
+        // the last element is the head
+        for (var i = 0; i < START_LENGTH; i += 1) {
+            rowArr.push(0);
+            colArr.push(i);
+            // generate a random image for each body
+            // segment
+            imgArr.push(randomInt(0, images.length));
+        }
+        // start snake moving to the right
+        direction = RIGHT;
+        score = 0;
+    };
+    // delta (change increment) for the snake's movement
+    var getDelta = function(direction) {
+        var row = 0;
+        var col = 0;
+        if (direction === DOWN) {
+            row = 1;
+        } else if (direction === UP) {
+            row = -1;
+        } else if (direction === LEFT) {
+            col = -1;
+        } else if (direction === RIGHT) {
+            col = 1;
+        }
+        return {row: row, col: col};
+    };
+    // set index so that it's within the bounds [0, N-1]
+    var makeInBounds = function(index, wrapAround) {
+        if (!wrapAround) {
+            if (index === N || index === -1) {
+                gameOver = true;
+                return;
+            }
+        } else {
+            if (index === N) {
+                index = 0;
+            } else if (index === -1) {
+                index = N;
+            }
+        }
+        return index;
+    };
+    // true if a snake segment exists at (row, col)
+    var segmentAt = function(row, col) {
+        var len = rowArr.length;
+        for (var i = 0; i < len; i += 1) {
+            if (row === rowArr[i] && col === colArr[i]) {
+                return true;
+            }
+        }
+        return false;
+    };
+    var changeDirection = function() {
+        var dir = direction;
+        // by default the next direction will be the
+        // same as the current direction
+        nextDirection = dir;
+        if (keystack.length) {
+            var key = keystack.pop();
+            if (dir === RIGHT || dir === LEFT) {
+                if (key === UP || key === DOWN) {
+                    nextDirection = key;
+                }
+            } else if (dir === UP || dir === DOWN) {
+                if (key === RIGHT || key === LEFT) {
+                    nextDirection = key;
+                }
+            }
+        }
+    };
+    this.move = function(apple) {
+        // don't move unless the frame number is a
+        // multiple of GAME_SPEED
+        if (frameCount % GAME_SPEED !== 0) {
+            return;
+        }
+        changeDirection();
+        // get snake "head"
+        var row = rowArr[rowArr.length-1];
+        var col = colArr[colArr.length-1];
+        // get next movement
+        direction = nextDirection;
+        var delta = getDelta(direction);
+        var rowNext = row + delta.row;
+        var colNext = col + delta.col;
+        rowNext = makeInBounds(rowNext, WRAP_AROUND);
+        colNext = makeInBounds(colNext, WRAP_AROUND);
+        // if the snake collides with itself, game over
+        if (segmentAt(rowNext, colNext)) {
+            gameOver = true;
+        }
+        // exit before advancing the snake
+        if (gameOver) {
+            return;
+        }
+        // if the next movement lands on the apple
+        if (apple.positionMatch(rowNext, colNext)) {
+            // add it to the snake tail
+            imgArr.unshift(apple.img);
+            apple.init();
+            score++;
+        } else {
+            // otherwise, "move" the snake by removing
+            // the tail segment
+            rowArr.shift();
+            colArr.shift();
+        }
+        // "move" the snake by adding a new segment to
+        // the head (note that imgArr is not changed)
+        rowArr.push(rowNext);
+        colArr.push(colNext);
+    };
+    this.draw = function() {
+        fill(255, 64, 64);
+        var h = rowHeight;
+        var len = rowArr.length;
+        for (var i = 0; i < len; i += 1) {
+            if (i === len - 1) {
+                // draw a star for the head
+                var x = colArr[i] * h;
+                var y = (rowArr[i] - 0.7) * h;
+                image(star, x, y, h, h * 2);
+            } else {
+                // use the image for everything else
+                drawUnit(rowArr[i], colArr[i], imgArr[i]);
+            }
+        }
+    };
+    this.score = function() {
+        return score;
+    };
+    init();
+};
+///////////// START GAME /////////////
+var startGame = function() {
+    snake = new Snake();
+    apple = new Apple();
+    gameOverTimer = Timer(GAME_OVER_TIMEOUT);
+    gameOver = false;
+};
+// begin with a new game
+startGame();
+///////////// MAIN GAME LOOP /////////////
+	    
+var draw = function() {
+    drawBackground(255);
+    drawGrid();
+    snake.draw();
+    apple.draw();
+    if (!gameOver) {
+        snake.move(apple);
+    } else {
+        drawGameOverScreen();
+        // don't let the user restart the game
+        // until the timer is up
+        if (keyIsPressed && gameOverTimer.isUp()) {
+            startGame();
+        } else {
+            gameOverTimer.decr();
+        }
+    }
+};
+ 
+ }};
+ // Get the canvas that ProcessingJS will use
+  var canvas = document.getElementById("mycanvas"); 
+  // Pass the function to ProcessingJS constructor
+  var processingInstance = new Processing(canvas, programCode); 
+	var restart = function(){
+		    console.log("restart");
+		    START_LENGTH = 1;
+	    //startGame();
+	    };
+  </script>
+</html>
