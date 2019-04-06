@@ -277,13 +277,11 @@ var Snake = function() {
             imgArr.unshift(apple.img);
             apple.init();
             score++;
-		console.log("score " + score);
+
 		if (score >= 4){
-					console.log("score if" + score);
 			WRAP_AROUND = true;
 		}
 		else {
-					console.log("score else" + score);
 			WRAP_AROUND = false;
 		}
 		
@@ -349,7 +347,6 @@ var draw = function() {
     drawGrid();
     snake.draw();
     apple.draw();
-	
 	
     draw_score();
 	
