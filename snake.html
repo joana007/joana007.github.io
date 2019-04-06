@@ -277,13 +277,15 @@ var Snake = function() {
             imgArr.unshift(apple.img);
             apple.init();
             score++;
-		if (score >= 1){
+		console.log("score " + score);
+		if (score >= 4){
+					console.log("score if" + score);
 			WRAP_AROUND = true;
 		}
 		else {
+					console.log("score else" + score);
 			WRAP_AROUND = false;
-		     }
-		
+		}
 		
         } else {
             // otherwise, "move" the snake by removing
