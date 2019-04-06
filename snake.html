@@ -319,12 +319,30 @@ var startGame = function() {
 // begin with a new game
 startGame();
 ///////////// MAIN GAME LOOP /////////////
-	    
+var draw_score = function(){
+
+    var font = createFont("monospace", 20);
+
+    textFont(font, 20);
+
+    textSize(60);
+
+    fill(49, 201, 26);
+
+    textSize(26);
+
+    text("Score: " + snake.score(), 0, height);
+}	    
+
 var draw = function() {
     drawBackground(255);
     drawGrid();
     snake.draw();
     apple.draw();
+	
+	
+    draw_score();
+	
     if (!gameOver) {
         snake.move(apple);
     } else {
