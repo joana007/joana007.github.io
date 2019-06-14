@@ -66,10 +66,24 @@ var ballY = 0;
 
 // true if ball is moving, false if ball is attached to paddle
 var ballMoving = false;
+	    
+var score = 0;
+
+//função que desenha o score no ecrã
+var draw_score = function(){
+    var font = createFont("monospace", 20);
+    textFont(font, 20);
+    textSize(60);
+    fill(49, 201, 26);
+    textSize(26);
+    text("Score: " + score, 0, height);
+};
 
 var draw = function() {
     background(0, 108, 135);
-    
+     
+	draw_score();
+
     // draw the paddle
     fill(240, 126, 65);
     rect(mouseX - paddleWidth/2, 350, paddleWidth, 10);
@@ -117,10 +131,17 @@ var draw = function() {
     // check if the ball has hit the paddle
     if (ballY >= 340 && ballY < 346 && ballX >= mouseX - paddleWidth/2 && ballX <= mouseX + paddleWidth/2) {
         ballSpeedY = -ballSpeedY;
+	
+	//aumenta o score cada vez que a bola toca na barra laranja
+	if(ballMoving){
+            score++;    
+        }
     }
     // check if ball fell out the bottom
     if (ballY >= 400) {
         ballMoving = false;
+	    //coloca o score a zero para recomeçar o jogo
+	    score = 0;
     }
 };
 
